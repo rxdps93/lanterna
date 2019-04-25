@@ -185,7 +185,7 @@ public class ComboBox<V> extends AbstractInteractableComponent<ComboBox<V>> {
         if(index == -1) {
             return this;
         }
-        return remoteItem(index);
+        return removeItem(index);
     }
 
     /**
@@ -194,7 +194,7 @@ public class ComboBox<V> extends AbstractInteractableComponent<ComboBox<V>> {
      * @return Itself
      * @throws IndexOutOfBoundsException if the index is out of range
      */
-    public synchronized ComboBox<V> remoteItem(int index) {
+    public synchronized ComboBox<V> removeItem(int index) {
         items.remove(index);
         if(index < selectedIndex) {
             setSelectedIndex(selectedIndex - 1);
@@ -596,10 +596,10 @@ public class ComboBox<V> extends AbstractInteractableComponent<ComboBox<V>> {
                 });
             }
             listBox.setSelectedIndex(getSelectedIndex());
-            TerminalSize dropDownListPreferedSize = listBox.getPreferredSize();
+            TerminalSize dropDownListPreferredSize = listBox.getPreferredSize();
             if(dropDownNumberOfRows > 0) {
-                listBox.setPreferredSize(dropDownListPreferedSize.withRows(
-                        Math.min(dropDownNumberOfRows, dropDownListPreferedSize.getRows())));
+                listBox.setPreferredSize(dropDownListPreferredSize.withRows(
+                        Math.min(dropDownNumberOfRows, dropDownListPreferredSize.getRows())));
             }
             setComponent(listBox);
         }

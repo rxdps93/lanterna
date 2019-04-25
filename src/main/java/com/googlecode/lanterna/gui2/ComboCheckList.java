@@ -31,7 +31,6 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 	private final List<Listener> listeners;
 
 	private PopupWindow popupWindow;
-	private String text;
 
 	private boolean dropDownFocused;
 	private int dropDownNumberOfRows;
@@ -47,7 +46,6 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 		this.popupWindow = null;
 		this.dropDownFocused = true;
 		this.dropDownNumberOfRows = 10;
-		this.text = "";
 	}
 
 	/**
@@ -156,7 +154,7 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 	}
 
 	public String getText() {
-		return text;
+		return String.format("%d of %d checked", getCheckedItems().size(), getItemCount());
 	}
 
 	public boolean isDropDownFocused() {
@@ -331,7 +329,9 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
             synchronized(component) {
                 for(int i = 0; i < component.getItemCount(); i++) {
                     V item = component.getItem(i);
-                    size = size.max(new TerminalSize(TerminalTextUtils.getColumnWidth(item.toString()) + 2 + 1, 1));   // +1 to add a single column of space
+                    size = size.max(new TerminalSize(
+                    		Math.max(TerminalTextUtils.getColumnWidth(item.toString()),
+                    				TerminalTextUtils.getColumnWidth(component.getText())) + 2 + 3, 1));   // +3 to make up for checkbox space requirements
                 }
             }
             return size;
@@ -347,7 +347,6 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 			
 			String textToDraw = TerminalTextUtils.fitString(component.getText(), 0, textArea);
 			graphics.putString(0, 0, textToDraw);
-			graphics.applyThemeStyle(themeDefinition.getInsensitive());
 			graphics.setCharacter(textArea, 0, themeDefinition.getCharacter("POPUP_SEPARATOR", Symbols.SINGLE_LINE_VERTICAL));
 			if (component.isFocused() && component.isDropDownFocused()) {
 				graphics.applyThemeStyle(themeDefinition.getSelected());

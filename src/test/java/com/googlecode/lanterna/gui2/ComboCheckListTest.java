@@ -3,6 +3,8 @@ package com.googlecode.lanterna.gui2;
 import java.io.IOException;
 import java.util.Arrays;
 
+import com.googlecode.lanterna.gui2.ComboCheckList.DisplayMode;
+
 public class ComboCheckListTest extends TestBase {
 
 	public static void main(String[] args) throws IOException, InterruptedException {
@@ -17,6 +19,8 @@ public class ComboCheckListTest extends TestBase {
 		
 		final ComboCheckList<String> shortText = new ComboCheckList<String>();
 		final ComboCheckList<String> mixedText = new ComboCheckList<String>();
+		
+		shortText.setDisplayMode(DisplayMode.SPACE_FULL);
 		
 		for (String item : Arrays.asList("a", "b", "c", "d", "e", "f", "g")) {
 			shortText.addItem(item);

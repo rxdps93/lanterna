@@ -40,6 +40,9 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 
 	private PopupWindow popupWindow;
 
+	private String customText;
+	private DisplayMode displayMode;
+
 	private boolean dropDownFocused;
 	private int dropDownNumberOfRows;
 
@@ -53,6 +56,8 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 		this.itemStatus = new ArrayList<Boolean>();
 		this.listeners = new CopyOnWriteArrayList<Listener>();
 		this.popupWindow = null;
+		this.customText = "";
+		this.displayMode = DisplayMode.CHECK_COUNT;
 		this.dropDownFocused = true;
 		this.dropDownNumberOfRows = 10;
 	}
@@ -223,45 +228,133 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 	 * @return the status text that is displayed in the collapsed component
 	 */
 	public String getText() {
-		return String.format("%d of %d checked", getCheckedItems().size(), getItemCount());
+		String text;
+
+		switch (this.displayMode) {
+		case COMMA_FULL:
+			text = textList(',', true);
+			break;
+		case COMMA_TRUNC:
+			text = textList(',', false);
+			break;
+		case SPACE_FULL:
+			text = textList(' ', true);
+			break;
+		case SPACE_TRUNC:
+			text = textList(' ', false);
+			break;
+		case CUSTOM:
+			text = this.customText;
+			break;
+		case CHECK_COUNT:
+		default:
+			text = String.format("%d of %d checked", getCheckedItems().size(), getItemCount());
+			break;
+		}
+
+		return text;
 	}
 
-    /**
-     * Returns {@code true} if the users input focus is currently on the drop-down button of the combo check list, so that
-     * pressing enter would trigger the popup window. This is generally used by renderers only.
-     * @return {@code true} if the input focus is on the drop-down "button" of the combo check list
-     */
+	/**
+	 * Helper method for generating full and truncated lists
+	 * TODO improve this method - it is rather ugly.
+	 * TODO improve the truncation logic - it has bugs
+	 * 
+	 * @param delimiter space or comma
+	 * @param full true means a full list, false means a truncated list
+	 * @return the generated list
+	 */
+	private String textList(char delimiter, boolean full) {
+
+		
+		if (getCheckedItems().size() == 0)
+			return "No checked items";
+		else {
+			StringBuilder list = new StringBuilder("");
+			
+			int maxWidth = -1;
+			if (!full) {
+				for (V item : items) {
+					maxWidth = Math.max(maxWidth, item.toString().length());
+				}
+			}
+			
+			for (int i = 0; i < getCheckedItems().size(); i++) {
+				list.append(getCheckedItems().get(i));
+
+				if (!full && list.toString().length() >= maxWidth && getCheckedItems().size() - (i + 1) > 0) {
+					list.append(String.format(" +%d more", getCheckedItems().size() - (i + 1)));
+					break;
+				}
+
+				if (i < getCheckedItems().size() - 1)
+					list.append(delimiter);
+			}
+			return list.toString();
+		}
+		
+	}
+
+	/**
+	 * Sets the text that will be shown in the collapsed component when the display mode is set to {@code DisplayMode.CUSTOM}
+	 * @param customText the custom text to display
+	 */
+	public void setText(String customText) {
+		this.customText = customText;
+	}
+
+	/**
+	 * Returns the display mode used by this component
+	 * @return the display mode used by this component
+	 */
+	public DisplayMode getDisplayMode() {
+		return this.displayMode;
+	}
+
+	/**
+	 * The display mode to use for the collapsed component
+	 * @param displayMode the display mode for the collapsed component
+	 */
+	public void setDisplayMode(DisplayMode displayMode) {
+		this.displayMode = displayMode;
+	}
+
+	/**
+	 * Returns {@code true} if the users input focus is currently on the drop-down button of the combo check list, so that
+	 * pressing enter would trigger the popup window. This is generally used by renderers only.
+	 * @return {@code true} if the input focus is on the drop-down "button" of the combo check list
+	 */
 	public boolean isDropDownFocused() {
 		return dropDownFocused;
 	}
 
-    /**
-     * Returns the number of items to display in drop down at one time, if there are more items in the model there will
-     * be a scrollbar to help the user navigate. If this returns 0, the component will always grow to show all items in
-     * the list, which might cause undesired effects if you put really a lot of items into the combo box.
-     *
-     * @return Number of items (rows) that will be displayed in the component, or 0 if the component will always grow to
-     * accommodate
-     */
+	/**
+	 * Returns the number of items to display in drop down at one time, if there are more items in the model there will
+	 * be a scrollbar to help the user navigate. If this returns 0, the component will always grow to show all items in
+	 * the list, which might cause undesired effects if you put really a lot of items into the combo box.
+	 *
+	 * @return Number of items (rows) that will be displayed in the component, or 0 if the component will always grow to
+	 * accommodate
+	 */
 	public int getDropDownNumberOfRows() {
 		return dropDownNumberOfRows;
 	}
 
-    /**
-     * Sets the number of items to display in drop down at one time, if there are more items in the model there will
-     * be a scrollbar to help the user navigate. Use this method if your components have large models that fills up
-     * the whole screen. Set it to 0 if you don't want to limit the number.
-     * @param dropDownNumberOfRows Max number of items (rows) to display at one time in the component
-     */
+	/**
+	 * Sets the number of items to display in drop down at one time, if there are more items in the model there will
+	 * be a scrollbar to help the user navigate. Use this method if your components have large models that fills up
+	 * the whole screen. Set it to 0 if you don't want to limit the number.
+	 * @param dropDownNumberOfRows Max number of items (rows) to display at one time in the component
+	 */
 	public void setDropDownNumberOfRows(int dropDownNumberOfRows) {
 		this.dropDownNumberOfRows = dropDownNumberOfRows;
 	}
 
-    /**
-     * Adds a new listener to the {@code ComboCheckList} that will be called on certain user actions
-     * @param listener Listener to attach to this {@code ComboCheckList}
-     * @return Itself
-     */
+	/**
+	 * Adds a new listener to the {@code ComboCheckList} that will be called on certain user actions
+	 * @param listener Listener to attach to this {@code ComboCheckList}
+	 * @return Itself
+	 */
 	public ComboCheckList<V> addListener(Listener listener) {
 		if (listener != null && !listeners.contains(listener)) {
 			listeners.add(listener);
@@ -269,12 +362,12 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 		return this;
 	}
 
-    /**
-     * Removes a listener from this {@code ComboCheckList} so that if it had been added earlier, it will no longer be
-     * called on user actions
-     * @param listener Listener to remove from this {@code ComboCheckList}
-     * @return Itself
-     */
+	/**
+	 * Removes a listener from this {@code ComboCheckList} so that if it had been added earlier, it will no longer be
+	 * called on user actions
+	 * @param listener Listener to remove from this {@code ComboCheckList}
+	 * @return Itself
+	 */
 	public ComboCheckList<V> removeListener(Listener listener) {
 		listeners.remove(listener);
 		return this;
@@ -324,7 +417,7 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 				return Result.HANDLED;
 			}
 			break;
-			
+
 		case Character:
 			if (keyStroke.getCharacter().equals(' ')) {
 				if (popupWindow != null) {
@@ -337,7 +430,7 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 				}
 			}
 			break;
-			
+
 		case Enter:
 			if (popupWindow != null) {
 				popupWindow.checkList.handleInput(keyStroke);
@@ -360,15 +453,59 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 		}
 		return super.handleKeyStroke(keyStroke);
 	}
-	
+
 	private void closePopupWindow() {
-		
+
 		for (V item : items) {
 			setChecked(item, popupWindow.checkList.isChecked(item));
 		}
-		
+
 		popupWindow.close();
 		popupWindow = null;
+		invalidate();
+	}
+
+	/**
+	 * Enumeration which dictates what text is shown in the collapsed (popup window closed) component
+	 */
+	public enum DisplayMode {
+
+		/**
+		 * Shows how many items are checked out of the total number of items in the list. This is the default display mode.
+		 * e.g. "6 of 26 checked"
+		 */
+		CHECK_COUNT,
+
+		/**
+		 * Shows a full list of all checked items separated by a comma
+		 * e.g. "item_a, item_d, item_f, item_m, item_y, item_z"
+		 */
+		COMMA_FULL,
+
+		/**
+		 * Shows a truncated list of all checked items separated by a comma. The text shows at minimum the first item, and will max out at roughly the length of the longest menu item.
+		 * e.g. "item_a, item_b, +4 more"
+		 */
+		COMMA_TRUNC,
+
+		/**
+		 * Shows a full list of all checked items separated by a space
+		 * e.g. "item_a item_d item_f item_m item_y item_z"
+		 */
+		SPACE_FULL,
+
+		/**
+		 * Shows a truncated list of all checked items separated by a comma. The text shows at minimum the first item, and will max out at roughly the length of the longest menu item.
+		 * e.g. "item_a item_b +4 more"
+		 */
+		SPACE_TRUNC,
+
+		/**
+		 * Custom text to display can be set using the {@code setText} method. Custom text is empty by default, so selecting this display mode without setting text will show a blank component.
+		 * 
+		 * e.g. calling myComponent.setText("Please check all applicable items") will result in the provided text statically showing in the collapsed component
+		 */
+		CUSTOM;
 	}
 
 	private class PopupWindow extends BasicWindow {
@@ -390,34 +527,34 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 			}
 			setComponent(checkList);
 		}
-		
+
 		@Override
 		public synchronized Theme getTheme() {
 			return ComboCheckList.this.getTheme();
 		}
 	}
-	
-    /**
-     * Helper interface that doesn't add any new methods but makes coding new combo check list renderers a little bit more clear
-     */
+
+	/**
+	 * Helper interface that doesn't add any new methods but makes coding new combo check list renderers a little bit more clear
+	 */
 	public static abstract class ComboCheckListRenderer<V> implements InteractableRenderer<ComboCheckList<V>> {
-		
+
 	}
-	
-    /**
-     * This class is the default renderer implementation which will be used unless overridden. The combochecklist is rendered
-     * like a text box with an arrow point down to the right of it, which can receive focus and triggers the popup.
-     * @param <V> Type of items in the combo check list
-     */
+
+	/**
+	 * This class is the default renderer implementation which will be used unless overridden. The combochecklist is rendered
+	 * like a text box with an arrow point down to the right of it, which can receive focus and triggers the popup.
+	 * @param <V> Type of items in the combo check list
+	 */
 	public static class DefaultComboCheckListRenderer<V> extends ComboCheckListRenderer<V> {
 
-        /**
-         * Default constructor
-         */
+		/**
+		 * Default constructor
+		 */
 		public DefaultComboCheckListRenderer() {
-			
+
 		}
-		
+
 		@Override
 		public TerminalPosition getCursorLocation(ComboCheckList<V> component) {
 			if (component.isDropDownFocused()) {
@@ -433,28 +570,28 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 
 		@Override
 		public TerminalSize getPreferredSize(ComboCheckList<V> component) {
-            TerminalSize size = TerminalSize.ONE.withColumns(
-                    (component.getItemCount() == 0 ? TerminalTextUtils.getColumnWidth(component.getText()) : 0) + 2);
-            //noinspection SynchronizationOnLocalVariableOrMethodParameter
-            synchronized(component) {
-                for(int i = 0; i < component.getItemCount(); i++) {
-                    V item = component.getItem(i);
-                    size = size.max(new TerminalSize(
-                    		Math.max(TerminalTextUtils.getColumnWidth(item.toString()),
-                    				TerminalTextUtils.getColumnWidth(component.getText())) + 2 + 3, 1));   // +3 to make up for checkbox space requirements
-                }
-            }
-            return size;
+			TerminalSize size = TerminalSize.ONE.withColumns(
+					(component.getItemCount() == 0 ? TerminalTextUtils.getColumnWidth(component.getText()) : 0) + 2);
+			//noinspection SynchronizationOnLocalVariableOrMethodParameter
+			synchronized(component) {
+				for(int i = 0; i < component.getItemCount(); i++) {
+					V item = component.getItem(i);
+					size = size.max(new TerminalSize(
+							Math.max(TerminalTextUtils.getColumnWidth(item.toString()),
+									TerminalTextUtils.getColumnWidth(component.getText())) + 2 + 3, 1));   // +3 to make up for checkbox space requirements
+				}
+			}
+			return size;
 		}
 
 		@Override
 		public void drawComponent(TextGUIGraphics graphics, ComboCheckList<V> component) {
 			ThemeDefinition themeDefinition = component.getThemeDefinition();
 			graphics.applyThemeStyle(themeDefinition.getNormal());
-			
+
 			graphics.fill(' ');
 			int textArea = graphics.getSize().getColumns() - 2;
-			
+
 			String textToDraw = TerminalTextUtils.fitString(component.getText(), 0, textArea);
 			graphics.putString(0, 0, textToDraw);
 			graphics.setCharacter(textArea, 0, themeDefinition.getCharacter("POPUP_SEPARATOR", Symbols.SINGLE_LINE_VERTICAL));
@@ -463,7 +600,7 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 			}
 			graphics.setCharacter(textArea + 1, 0, themeDefinition.getCharacter("POPUP", Symbols.TRIANGLE_DOWN_POINTING_BLACK));
 		}
-		
+
 	}
 
 }

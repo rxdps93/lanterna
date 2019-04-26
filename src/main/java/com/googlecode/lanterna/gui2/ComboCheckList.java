@@ -21,8 +21,16 @@ import com.googlecode.lanterna.input.KeyStroke;
  */
 public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckList<V>> {
 
+	/**
+	 * Listener interface that can be used to catch user events on the combo check list
+	 */
 	public interface Listener {
 
+		/**
+		 * This method is called whenever the user checks or unchecks an item
+		 * @param index the index of the item the user interacted with
+		 * @param checked the new status of the item
+		 */
 		void onStatusChange(int index, boolean checked);
 	}
 
@@ -36,7 +44,8 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 	private int dropDownNumberOfRows;
 
 	/**
-	 * Creates a new {@code ComboCheckList} initialized with no items.
+	 * Creates a new {@code ComboCheckList} initialized with no items. By default 10 items will be
+	 * displayed at once, more than that and there will be a scroll bar.
 	 */
 	public ComboCheckList() {
 
@@ -70,6 +79,10 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 		return this;
 	}
 
+	/**
+	 * Removes all items from the combo checklist
+	 * @return Itself
+	 */
 	public synchronized ComboCheckList<V> clearItems() {
 		items.clear();
 		itemStatus.clear();
@@ -77,6 +90,11 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 		return this;
 	}
 
+	/**
+	 * Removes a particular item from the component if it is present, otherwise does nothing.
+	 * @param item Item to remove from the component
+	 * @return Itself
+	 */
 	public synchronized ComboCheckList<V> removeItem(V item) {
 		int index = items.indexOf(item);
 		if (index == -1) {
@@ -85,6 +103,12 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 		return removeItem(index);
 	}
 
+	/**
+	 * Removes an item from the component at a particular index
+	 * @param index Index of the item to remove
+	 * @return Itself
+	 * @throws IndexOutOfBoundsException if the index is out of range
+	 */
 	public synchronized ComboCheckList<V> removeItem(int index) {
 		items.remove(index);
 		itemStatus.remove(index);
@@ -92,6 +116,13 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 		return this;
 	}
 
+	/**
+	 * Updates the component so the item at the particular index is swapped out with the supplied value in the
+	 * {@code item} parameter
+	 * @param index Index of the item to swap out
+	 * @param item Item to replace with
+	 * @return Itself
+	 */
 	public synchronized ComboCheckList<V> setItem(int index, V item) {
 		if (item == null) {
 			throw new IllegalArgumentException("Cannot add null elements to a ComboCheckList");
@@ -101,6 +132,11 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 		return this;
 	}
 
+	/**
+	 * Returns {@code true} if the given item is currently checked. If the item does not exist it will return {@code null}.
+	 * @param item Item to check the status of
+	 * @return {@code true} if checked, {@code false} if unchecked, {@code null} otherwise
+	 */
 	public synchronized Boolean isChecked(V item) {
 		int index = items.indexOf(item);
 		if (index == -1)
@@ -108,6 +144,11 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 		return itemStatus.get(index);
 	}
 
+	/**
+	 * Returns {@code true} if the item at the given index is currently checked.
+	 * @param index Index of the item to return the status of
+	 * @return {@code true} if checked, {@code false} if unchecked, {@code null} if the index is out of bounds
+	 */
 	public synchronized Boolean isChecked(int index) {
 		if (index < 0 || index >= itemStatus.size())
 			return null;
@@ -115,6 +156,12 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 		return itemStatus.get(index);
 	}
 
+	/**
+	 * Checks or unchecks the given object based on the provided boolean
+	 * @param object Item to change the status of
+	 * @param checked The status to assign to the object
+	 * @return Itself
+	 */
 	public synchronized ComboCheckList<V> setChecked(V object, boolean checked) {
 		int index = items.indexOf(object);
 		if (index != -1) {
@@ -123,6 +170,11 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 		return self();
 	}
 
+	/**
+	 * Checks or unchecks the object at the given index
+	 * @param index The index of the object to update
+	 * @param checked the status to apply
+	 */
 	private void setChecked(final int index, final boolean checked) {
 		itemStatus.set(index, checked);
 		runOnGUIThreadIfExistsOtherwiseRunDirect(new Runnable() {
@@ -135,6 +187,10 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 		});
 	}
 
+	/**
+	 * Returns a list of all the items checked in the list
+	 * @return a list containing each checked item
+	 */
 	public synchronized List<V> getCheckedItems() {
 		List<V> result = new ArrayList<V>();
 		for (int i = 0; i < itemStatus.size(); i++) {
@@ -145,30 +201,67 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 		return result;
 	}
 
+	/**
+	 * Returns the number of items in the list
+	 * @return the number of items in the list
+	 */
 	public synchronized int getItemCount() {
 		return items.size();
 	}
 
+	/**
+	 * Returns the item at the given index, null if no item is present
+	 * @param index the index of the item to retrieve
+	 * @return the item, otherwise null
+	 */
 	public synchronized V getItem(int index) {
 		return items.get(index);
 	}
 
+	/**
+	 * Returns the status text that is displayed in the collapsed component
+	 * @return the status text that is displayed in the collapsed component
+	 */
 	public String getText() {
 		return String.format("%d of %d checked", getCheckedItems().size(), getItemCount());
 	}
 
+    /**
+     * Returns {@code true} if the users input focus is currently on the drop-down button of the combo check list, so that
+     * pressing enter would trigger the popup window. This is generally used by renderers only.
+     * @return {@code true} if the input focus is on the drop-down "button" of the combo check list
+     */
 	public boolean isDropDownFocused() {
 		return dropDownFocused;
 	}
 
+    /**
+     * Returns the number of items to display in drop down at one time, if there are more items in the model there will
+     * be a scrollbar to help the user navigate. If this returns 0, the component will always grow to show all items in
+     * the list, which might cause undesired effects if you put really a lot of items into the combo box.
+     *
+     * @return Number of items (rows) that will be displayed in the component, or 0 if the component will always grow to
+     * accommodate
+     */
 	public int getDropDownNumberOfRows() {
 		return dropDownNumberOfRows;
 	}
 
+    /**
+     * Sets the number of items to display in drop down at one time, if there are more items in the model there will
+     * be a scrollbar to help the user navigate. Use this method if your components have large models that fills up
+     * the whole screen. Set it to 0 if you don't want to limit the number.
+     * @param dropDownNumberOfRows Max number of items (rows) to display at one time in the component
+     */
 	public void setDropDownNumberOfRows(int dropDownNumberOfRows) {
 		this.dropDownNumberOfRows = dropDownNumberOfRows;
 	}
 
+    /**
+     * Adds a new listener to the {@code ComboCheckList} that will be called on certain user actions
+     * @param listener Listener to attach to this {@code ComboCheckList}
+     * @return Itself
+     */
 	public ComboCheckList<V> addListener(Listener listener) {
 		if (listener != null && !listeners.contains(listener)) {
 			listeners.add(listener);
@@ -176,6 +269,12 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 		return this;
 	}
 
+    /**
+     * Removes a listener from this {@code ComboCheckList} so that if it had been added earlier, it will no longer be
+     * called on user actions
+     * @param listener Listener to remove from this {@code ComboCheckList}
+     * @return Itself
+     */
 	public ComboCheckList<V> removeListener(Listener listener) {
 		listeners.remove(listener);
 		return this;
@@ -298,12 +397,23 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 		}
 	}
 	
+    /**
+     * Helper interface that doesn't add any new methods but makes coding new combo check list renderers a little bit more clear
+     */
 	public static abstract class ComboCheckListRenderer<V> implements InteractableRenderer<ComboCheckList<V>> {
 		
 	}
 	
+    /**
+     * This class is the default renderer implementation which will be used unless overridden. The combochecklist is rendered
+     * like a text box with an arrow point down to the right of it, which can receive focus and triggers the popup.
+     * @param <V> Type of items in the combo check list
+     */
 	public static class DefaultComboCheckListRenderer<V> extends ComboCheckListRenderer<V> {
 
+        /**
+         * Default constructor
+         */
 		public DefaultComboCheckListRenderer() {
 			
 		}

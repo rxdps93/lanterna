@@ -234,13 +234,10 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 		case COMMA_FULL:
 			text = textList(',', true);
 			break;
-		case COMMA_TRUNC:
-			text = textList(',', false);
-			break;
 		case SPACE_FULL:
 			text = textList(' ', true);
 			break;
-		case SPACE_TRUNC:
+		case LIST_TRUNC:
 			text = textList(' ', false);
 			break;
 		case CUSTOM:
@@ -257,8 +254,6 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 
 	/**
 	 * Helper method for generating full and truncated lists
-	 * TODO improve this method - it is rather ugly.
-	 * TODO improve the truncation logic - it has bugs
 	 * 
 	 * @param delimiter space or comma
 	 * @param full true means a full list, false means a truncated list
@@ -272,17 +267,10 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 		else {
 			StringBuilder list = new StringBuilder("");
 			
-			int maxWidth = -1;
-			if (!full) {
-				for (V item : items) {
-					maxWidth = Math.max(maxWidth, item.toString().length());
-				}
-			}
-			
 			for (int i = 0; i < getCheckedItems().size(); i++) {
 				list.append(getCheckedItems().get(i));
 
-				if (!full && list.toString().length() >= maxWidth && getCheckedItems().size() - (i + 1) > 0) {
+				if (!full && getCheckedItems().size() - (i + 1) > 0) {
 					list.append(String.format(" +%d more", getCheckedItems().size() - (i + 1)));
 					break;
 				}
@@ -483,22 +471,16 @@ public class ComboCheckList<V> extends AbstractInteractableComponent<ComboCheckL
 		COMMA_FULL,
 
 		/**
-		 * Shows a truncated list of all checked items separated by a comma. The text shows at minimum the first item, and will max out at roughly the length of the longest menu item.
-		 * e.g. "item_a, item_b, +4 more"
-		 */
-		COMMA_TRUNC,
-
-		/**
 		 * Shows a full list of all checked items separated by a space
 		 * e.g. "item_a item_d item_f item_m item_y item_z"
 		 */
 		SPACE_FULL,
 
 		/**
-		 * Shows a truncated list of all checked items separated by a comma. The text shows at minimum the first item, and will max out at roughly the length of the longest menu item.
-		 * e.g. "item_a item_b +4 more"
+		 * Shows a truncated list. The text shows the first item plus how many additional items are selected.
+		 * e.g. "item_a +5 more"
 		 */
-		SPACE_TRUNC,
+		LIST_TRUNC,
 
 		/**
 		 * Custom text to display can be set using the {@code setText} method. Custom text is empty by default, so selecting this display mode without setting text will show a blank component.
